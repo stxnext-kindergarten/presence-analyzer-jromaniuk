@@ -14,7 +14,7 @@ TEST_DATA_CSV = os.path.join(
 )
 
 
-# pylint: disable=maybe-no-member, too-many-public-methods, invalid-name
+# pylint: disable=maybe-no-member, too-many-public-methods, invalid-name, line-too-long
 class PresenceAnalyzerViewsTestCase(unittest.TestCase):
     """
     Views tests.
@@ -65,7 +65,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         )
         self.assertEqual(resp.status_code, 501)
 
-    def test_user_mean_time_weekday_view__should_use_not_existing_user__result_is_404_http_exception(self): # pylint: disable=line-too-long
+    def test_user_mean_time_weekday_view__should_use_not_existing_user__result_is_404_http_exception(self):
         """
         Test user mean time weekday on non existing user
         """
@@ -75,7 +75,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         )
         self.assertEqual(resp.status_code, 404)
 
-    def test_user_mean_time_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self): # pylint: disable=line-too-long
+    def test_user_mean_time_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self):
         """
         Test user mean time weekday
         """
@@ -100,7 +100,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
 
-    def test_presence_weekday_view__should_retrieve_presence_data__result_is_a_extended_weekday_list(self): # pylint: disable=line-too-long
+    def test_presence_weekday_view__should_retrieve_presence_data__result_is_a_extended_weekday_list(self):
         """
         Test user presence weekday
         """
@@ -115,7 +115,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
 
-    def test_presence_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self): # pylint: disable=line-too-long
+    def test_presence_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self):
         """
         Test user presence weekday
         """
