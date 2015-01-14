@@ -7,15 +7,14 @@ import json
 import datetime
 import unittest
 
-from presence_analyzer import main, utils
-
+from presence_analyzer import main, views, utils
 
 TEST_DATA_CSV = os.path.join(
     os.path.dirname(__file__), '..', '..', 'runtime', 'data', 'test_data.csv'
 )
 
 
-# pylint: disable=maybe-no-member, too-many-public-methods
+# pylint: disable=maybe-no-member, too-many-public-methods, invalid-name, line-too-long
 class PresenceAnalyzerViewsTestCase(unittest.TestCase):
     """
     Views tests.
@@ -42,16 +41,99 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 302)
         assert resp.headers['Location'].endswith('/presence_weekday.html')
 
-    def test_api_users(self):
+    def test_api_users_view__should_call_xhr_request__result_is_users_list(self):
         """
         Test users listing.
         """
-        resp = self.client.get('/api/v1/users')
+        resp = self.client.get(
+            '/api/v1/users',
+            headers={'X-Requested-With': 'XMLHttpRequest'}
+        )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.content_type, 'application/json')
         data = json.loads(resp.data)
         self.assertEqual(len(data), 2)
         self.assertDictEqual(data[0], {u'user_id': 10, u'name': u'User 10'})
+
+    def test_api_users_view__should_call_not_xhr_request__result_is_501_http_exception(self):
+        """
+        Test users view
+        """
+        resp = self.client.get(
+            '/api/v1/users',
+            headers={}
+        )
+        self.assertEqual(resp.status_code, 501)
+
+    def test_user_mean_time_weekday_view__should_use_not_existing_user__result_is_404_http_exception(self):
+        """
+        Test user mean time weekday on non existing user
+        """
+        resp = self.client.get(
+            '/api/v1/mean_time_weekday/9',
+            headers={'X-Requested-With': 'XMLHttpRequest'}
+        )
+        self.assertEqual(resp.status_code, 404)
+
+    def test_user_mean_time_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self):
+        """
+        Test user mean time weekday
+        """
+        resp = self.client.get(
+            '/api/v1/mean_time_weekday/9',
+            headers={}
+        )
+        self.assertEqual(resp.status_code, 501)
+
+    def test_user_mean_time_weekday_view__should_use_existing_user__result_is_a_weekday_list(self):
+        """
+        Test user mean time weekday
+        """
+        resp = self.client.get(
+            '/api/v1/mean_time_weekday/10',
+            headers={'X-Requested-With': 'XMLHttpRequest'}
+        )
+        data = json.loads(resp.data)
+        result = [x[0] for x in data]
+        expected = [u"Mon", u"Tue", u"Wed", u"Thu", u"Fri", u"Sat", u"Sun"]
+        self.assertListEqual(expected, result)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+
+    def test_presence_weekday_view__should_retrieve_presence_data__result_is_a_extended_weekday_list(self):
+        """
+        Test user presence weekday
+        """
+        resp = self.client.get(
+            '/api/v1/presence_weekday/10',
+            headers={'X-Requested-With': 'XMLHttpRequest'}
+        )
+        data = json.loads(resp.data)
+        result = [x[0] for x in data]
+        expected = [u"Weekday", u"Mon", u"Tue", u"Wed", u"Thu", u"Fri", u"Sat", u"Sun"]
+        self.assertListEqual(expected, result)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content_type, 'application/json')
+
+    def test_presence_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self):
+        """
+        Test user presence weekday
+        """
+        resp = self.client.get(
+            '/api/v1/presence_weekday/9',
+            headers={}
+        )
+        self.assertEqual(resp.status_code, 501)
+
+    def test_presence_weekday_view__should_use_not_existing_user_result_is_404_http_exception(self):
+        """
+        Test user mean time weekday on non existing user
+        """
+        resp = self.client.get(
+            '/api/v1/presence_weekday/9',
+            headers={'X-Requested-With': 'XMLHttpRequest'}
+        )
+        self.assertEqual(resp.status_code, 404)
 
 
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
