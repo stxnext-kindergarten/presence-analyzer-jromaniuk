@@ -4,12 +4,12 @@ Helper functions used in views.
 """
 
 import csv
-from json import dumps
-from functools import wraps
+import time
+
 from datetime import datetime
-
 from flask import Response
-
+from functools import wraps
+from json import dumps
 from presence_analyzer.main import app
 
 import logging
@@ -81,6 +81,43 @@ def group_by_weekday(items):
         end = items[date]['end']
         result[date.weekday()].append(interval(start, end))
     return result
+
+
+def group_by_weekday_start_end(items):
+    """
+    Groups presence entries by weekday.
+    """
+    result = {}  # one list for every day in week
+
+    for date in items:
+        start, end = items[date]['start'], items[date]['end']
+        if date.weekday() not in result:
+            result[date.weekday()] = {
+                'weekday': date.strftime("%a"),
+                'start': [],
+                'end': []
+            }
+        result[date.weekday()]['start'].append(seconds_since_midnight(start))
+        result[date.weekday()]['end'].append(seconds_since_midnight(end))
+
+    return result
+
+
+def avg_time_weekday(items):
+    """
+    Count avg for Groups presence entries by weekday.
+    """
+    for day in items.values():
+        day['start'] = stringify_average_date(day['start'])
+        day['end'] = stringify_average_date(day['end'])
+    return items
+
+
+def stringify_average_date(list):
+    """
+    Stringify avg date
+    """
+    return time.strftime("%Y %m %d %H:%M:%S", time.gmtime(mean(list)))
 
 
 def seconds_since_midnight(time):
