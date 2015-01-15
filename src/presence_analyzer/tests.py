@@ -147,8 +147,9 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         result = json.loads(resp.data)
         expected = {
             u'1': {u'start': u'1970 01 01 09:39:05', u'end': u'1970 01 01 17:59:52', u'weekday': u'Tue'},
-            u'3': {u'start': u'1970 01 01 10:48:46', u'end': u'1970 01 01 17:23:51', u'weekday': u'Thu'},
-            u'2': {u'start': u'1970 01 01 09:19:52', u'end': u'1970 01 01 16:07:37', u'weekday': u'Wed'}
+            u'2': {u'start': u'1970 01 01 09:19:52', u'end': u'1970 01 01 16:07:37', u'weekday': u'Wed'},
+            u'3': {u'start': u'1970 01 01 15:18:46', u'end': u'1970 01 01 18:53:51', u'weekday': u'Thu'}
+
         }
         self.assertDictEqual(expected, result)
 
