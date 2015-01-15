@@ -5,10 +5,11 @@ Helper functions used in views.
 
 import csv
 import time
-from json import dumps
-from functools import wraps
+
 from datetime import datetime
 from flask import Response
+from functools import wraps
+from json import dumps
 from presence_analyzer.main import app
 
 import logging
@@ -89,15 +90,13 @@ def group_by_weekday_start_end(items):
     result = {}  # one list for every day in week
 
     for date in items:
-        start = items[date]['start']
-        """ :type: datetime """
-        end = items[date]['end']
-        """ :type: datetime """
-        if not result.get(date.weekday()):
-            result.setdefault(
-                date.weekday(),
-                {'weekday': date.strftime("%a"), 'start': [], 'end': []}
-            )
+        start, end = items[date]['start'], items[date]['end']
+        if date.weekday() not in result:
+            result[date.weekday()] = {
+                'weekday': date.strftime("%a"),
+                'start': [],
+                'end': []
+            }
         result[date.weekday()]['start'].append(seconds_since_midnight(start))
         result[date.weekday()]['end'].append(seconds_since_midnight(end))
 
