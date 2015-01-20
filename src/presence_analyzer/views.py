@@ -4,12 +4,13 @@ Defines views.
 """
 
 import calendar
-from flask import redirect, abort, request
+from flask import redirect, abort, request, render_template
 
 from presence_analyzer.main import app
 from presence_analyzer.utils import(
     avg_time_weekday,
     get_data,
+
     group_by_weekday,
     group_by_weekday_start_end,
     jsonify,
@@ -25,7 +26,24 @@ def mainpage():
     """
     Redirects to front page.
     """
-    return redirect('/static/presence_weekday.html')
+    return redirect('/presence_weekday.html')
+
+
+@app.route('/<tab>.html')
+def presence_weekday(tab):
+    """
+    Renders template
+    """
+    tabs = {
+        'presence_weekday': 'Presence by weekday',
+        'mean_time_weekday': 'Mean time weekday',
+        'presence_start_end': 'Presence start-end',
+    }
+    if tab not in tabs:
+        log.debug('Page %s not found!', tab)
+        abort(404)
+
+    return render_template("base.html", tab=tab, tabs=tabs)
 
 
 @app.route('/api/v1/users', methods=['GET'])

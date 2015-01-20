@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang=en>
+<head>
+    {% block head %}
+        <meta charset=utf-8>
+        <title>{{ name }}</title>
+        <meta name="keywords" content="" />
+        <meta name="description" content=""/>
+        <meta name="author" content="STX Next sp. z o.o."/>
+        <meta name="viewport" content="width=device-width; initial-scale=1.0">
+        <link href="/static/css/normalize.css" media="all" rel="stylesheet" type="text/css" />
+        <link href="/static/css/main.css" media="all" rel="stylesheet" type="text/css" />
+        <script src="/static/js/jquery.min.js"></script>
+        <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+        <script type="text/javascript">
+            google.load("visualization", "1", {packages:["corechart", "corechart", "timeline"], 'language': 'pl'});
+        </script>
+        <script type="text/javascript" src="/static/js/main.js"></script>
+        <script type="text/javascript" src="/static/js/{{ tab }}.js"></script>
+    {% endblock %}
+</head>
+<body>
+    <div id="main">
+        <div id="header">
+            <h1>{{ tab }}</h1>
+        <ul>
+            {% for key, value in tabs.iteritems() %}
+                <li {% if tab == key %} id="selected" {% endif %} }}>
+                    <a href="{{ key }}.html">{{ value }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        </div>
+        <div id="content">
+            <h2>{{ tab }}</h2>
+            <p>
+                <select id="user_id" style="display: none">
+                    <option value="">--</option>
+                </select>
+                <div id="chart_div" style="display: none"></div>
+                <div id="loading">
+                    <img src="/static/img/loading.gif" />
+                </div>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
