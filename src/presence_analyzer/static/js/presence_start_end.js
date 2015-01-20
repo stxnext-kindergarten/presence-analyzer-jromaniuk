@@ -1,8 +1,9 @@
 function chart(loading) {
-    var selected_user = $("#user_id").val(),
-        chart_div = $('#chart_div'),
-        dates = [],
-        data = new google.visualization.DataTable();
+    var selected_user = $("#user_id").val();
+    var chart_div = $('#chart_div');
+    var dates = [];
+    var data = new google.visualization.DataTable();
+
     if (selected_user) {
         loading.show();
         chart_div.hide();

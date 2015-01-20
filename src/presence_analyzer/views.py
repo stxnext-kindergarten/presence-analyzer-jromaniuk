@@ -30,7 +30,7 @@ def mainpage():
 
 
 @app.route('/<tab>.html')
-def presence_weekday(tab):
+def index(tab):
     """
     Renders template
     """
