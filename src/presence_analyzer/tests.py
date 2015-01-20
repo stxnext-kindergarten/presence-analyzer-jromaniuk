@@ -43,6 +43,13 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 302)
         assert resp.headers['Location'].endswith('/presence_weekday.html')
 
+    def test_index__should_not_find_url__result_is_404_http_exception(self):
+        """
+        Test index page
+        """
+        resp = self.client.get('/fail.html')
+        self.assertEqual(resp.status_code, 404)
+
     def test_api_users_view__should_call_xhr_request__result_is_users_list(self):
         """
         Test users listing.
