@@ -3,7 +3,6 @@ function chart(loading) {
         chart_div = $('#chart_div'),
         dates = [],
         data = new google.visualization.DataTable();
-
     if (selected_user) {
         loading.show();
         chart_div.hide();

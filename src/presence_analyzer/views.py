@@ -43,7 +43,7 @@ def presence_weekday(tab):
         log.debug('Page %s not found!', tab)
         abort(404)
 
-    return render_template("presence_weekday.html", tab=tab, tabs=tabs)
+    return render_template("base.html", tab=tab, tabs=tabs)
 
 
 @app.route('/api/v1/users', methods=['GET'])
