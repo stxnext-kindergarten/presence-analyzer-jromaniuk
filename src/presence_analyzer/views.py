@@ -2,10 +2,8 @@
 """
 Defines views.
 """
-
 import calendar
 from flask import redirect, abort, request, render_template
-
 from presence_analyzer.main import app
 from presence_analyzer.utils import(
     avg_time_weekday,
@@ -30,7 +28,7 @@ def mainpage():
 
 
 @app.route('/<tab>.html')
-def presence_weekday(tab):
+def index(tab):
     """
     Renders template
     """

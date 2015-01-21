@@ -8,7 +8,6 @@ import datetime
 import unittest
 
 from flask import Response
-
 from presence_analyzer import main, utils, views
 
 TEST_DATA_CSV = os.path.join(
@@ -42,6 +41,20 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         resp = self.client.get('/')
         self.assertEqual(resp.status_code, 302)
         assert resp.headers['Location'].endswith('/presence_weekday.html')
+
+    def test_index__should_not_find_url__result_is_404_http_exception(self):
+        """
+        Test index page
+        """
+        resp = self.client.get('/fail.html')
+        self.assertEqual(resp.status_code, 404)
+
+    def test_index__should_find_url__result_is_200_status_resonse(self):
+        """
+        Test index page
+        """
+        resp = self.client.get('/presence_weekday.html')
+        self.assertEqual(resp.status_code, 200)
 
     def test_api_users_view__should_call_xhr_request__result_is_users_list(self):
         """

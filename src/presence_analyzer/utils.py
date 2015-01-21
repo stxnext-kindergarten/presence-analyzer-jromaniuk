@@ -2,7 +2,6 @@
 """
 Helper functions used in views.
 """
-
 import csv
 import time
 

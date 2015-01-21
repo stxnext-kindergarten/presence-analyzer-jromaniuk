@@ -16,7 +16,7 @@ function parseInterval(value) {
             loading.hide();
         });
         $('#user_id').change(function(){
-            chart(loading)
+            chart(loading);
         });
     });
 })(jQuery);
