@@ -3,6 +3,7 @@
 Defines views.
 """
 import calendar
+import logging
 from flask import redirect, abort, request, render_template
 from presence_analyzer.main import app
 from presence_analyzer.utils import(
@@ -14,8 +15,6 @@ from presence_analyzer.utils import(
     jsonify,
     mean
 )
-
-import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 

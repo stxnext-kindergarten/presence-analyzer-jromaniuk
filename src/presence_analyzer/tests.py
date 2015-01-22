@@ -167,11 +167,42 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertDictEqual(expected, result)
 
 
+class SimpleCacheDummy():
+    """
+    Dummy cache object
+    it is created to help with testing cache method
+    """
+    def __init__(self):
+        self._cache = {}
+        self.timeout = None
+
+    def set(self, key, value, timeout=None):
+        """
+        sets key and value parameter
+        time out is here just to keep interface consistency
+        :param mixed key:
+        :param mixed value:
+        :param integer timeout:
+        """
+        self._cache[key] = value
+        self.timeout = timeout
+
+    def get(self, key):
+        """
+        gets value for given key
+        :param mixed key:
+        :return mixed :
+        """
+        try:
+            return self._cache[key]
+        except KeyError:
+            return None
+
+
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
     """
     Utility functions tests.
     """
-
     def setUp(self):
         """
         Before each test, set up a environment.
@@ -199,6 +230,44 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         self.assertIsInstance(result, Response)
         self.assertEqual(result.headers[0], ('Content-Type', u'application/json'))
         self.assertEqual(expected, result.response[0])
+
+    def test_get_data__should_set_value_in_cache__result_is_fresh_data_from_get_data(self):
+        cache_temp = utils.simple_cache
+        utils.simple_cache = SimpleCacheDummy()
+        expected = {1: 'user'}
+
+        @utils.cache(60)
+        def get_data():
+            """
+            Test function
+            """
+            return expected
+
+        result = get_data()
+        self.assertEqual(expected, result)
+        self.assertEqual(expected, utils.simple_cache.get('user-data'))
+        # sets previous state to simple_cache global variable at utils package
+        utils.simple_cache = cache_temp
+
+    def test_get_data__should_not_set_value_in_cache__result_is_cached_data_from_get_data(self):
+        cache_temp = utils.simple_cache
+        utils.simple_cache = SimpleCacheDummy()
+        expected = {2: 'user 2'}
+        utils.simple_cache.set('user-data', expected, 15)
+        not_expected = {1: 'user'}
+
+        @utils.cache(60)
+        def get_data():
+            """
+            Test function
+            """
+            return not_expected
+
+        result = get_data()
+        self.assertEqual(expected, result)
+        self.assertEqual(expected, utils.simple_cache.get('user-data'))
+        # sets previous state to simple_cache global variable at utils package
+        utils.simple_cache = cache_temp
 
     def test_get_data(self):
         """
@@ -275,8 +344,8 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         """
         Test interval
         """
-        start = datetime.datetime(1999, 12, 01, 0, 0, 1)
-        end = datetime.datetime(1999, 12, 01, 0, 2, 1)
+        start = datetime.datetime(1999, 12, 1, 0, 0, 1)
+        end = datetime.datetime(1999, 12, 1, 0, 2, 1)
         result = utils.interval(start, end)
         expected = 120
         self.assertEqual(expected, result)
