@@ -29,7 +29,7 @@ def mainpage():
 @app.route('/<tab>.html')
 def index(tab):
     """
-    Renders template
+    Renders template.
     """
     tabs = {
         'presence_weekday': 'Presence by weekday',
@@ -115,7 +115,7 @@ def presence_weekday_view(user_id):
 @jsonify
 def presence_start_end_view(user_id):
     """
-    Return timeline data
+    Return timeline data.
     """
     data = get_data()
     result = avg_time_weekday(

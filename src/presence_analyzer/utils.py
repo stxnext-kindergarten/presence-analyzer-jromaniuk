@@ -20,20 +20,20 @@ simple_cache = SimpleCache()
 
 def cache(expires):
     """
-    Cache user data
+    Cache user data.
     :param integer expires:
     :return function:
     """
     def decorator(function):
         """
-        Decorator
+        Decorator.
         :param function function:
         :return function:
         """
         @wraps(function)
         def wrapper(*args, **kwargs):
             """
-            Wrapper
+            Wrapper.
             :param args:
             :param kwargs:
             :return list:
@@ -69,9 +69,7 @@ def jsonify(function):
 @cache(15)
 def get_data():
     """
-    Extracts presence data from CSV file and groups it by user_id.
-
-    It creates structure like this:
+    Extracts presence data from CSV file and groups it by user_id. It creates structure like this.
     data = {
         'user_id': {
             datetime.date(2013, 10, 1): {
