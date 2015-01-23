@@ -44,14 +44,14 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_index__should_not_find_url__result_is_404_http_exception(self):
         """
-        Test index page
+        Test index page.
         """
         resp = self.client.get('/fail.html')
         self.assertEqual(resp.status_code, 404)
 
     def test_index__should_find_url__result_is_200_status_resonse(self):
         """
-        Test index page
+        Test index page.
         """
         resp = self.client.get('/presence_weekday.html')
         self.assertEqual(resp.status_code, 200)
@@ -72,7 +72,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_api_users_view__should_call_not_xhr_request__result_is_501_http_exception(self):
         """
-        Test users view
+        Test users view.
         """
         resp = self.client.get(
             '/api/v1/users',
@@ -82,7 +82,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_user_mean_time_weekday_view__should_use_not_existing_user__result_is_404_http_exception(self):
         """
-        Test user mean time weekday on non existing user
+        Test user mean time weekday on non existing user.
         """
         resp = self.client.get(
             '/api/v1/mean_time_weekday/9',
@@ -92,7 +92,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_user_mean_time_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self):
         """
-        Test user mean time weekday
+        Test user mean time weekday.
         """
         resp = self.client.get(
             '/api/v1/mean_time_weekday/9',
@@ -102,7 +102,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_user_mean_time_weekday_view__should_use_existing_user__result_is_a_weekday_list(self):
         """
-        Test user mean time weekday
+        Test user mean time weekday.
         """
         resp = self.client.get(
             '/api/v1/mean_time_weekday/10',
@@ -117,7 +117,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_presence_weekday_view__should_retrieve_presence_data__result_is_a_extended_weekday_list(self):
         """
-        Test user presence weekday
+        Test user presence weekday.
         """
         resp = self.client.get(
             '/api/v1/presence_weekday/10',
@@ -132,7 +132,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_presence_weekday_view__should_rise_no_xhr_before_no_user__result_is_501_http_exception(self):
         """
-        Test user presence weekday
+        Test user presence weekday.
         """
         resp = self.client.get(
             '/api/v1/presence_weekday/9',
@@ -142,7 +142,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_presence_weekday_view__should_use_not_existing_user__result_is_404_http_exception(self):
         """
-        Test user mean time weekday on non existing user
+        Test user mean time weekday on non existing user.
         """
         resp = self.client.get(
             '/api/v1/presence_weekday/9',
@@ -152,7 +152,7 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
 
     def test_presence_start_end_view__should_use_existing_user__result_is_start_end_list(self):
         """
-        Test user presence weekday
+        Test user presence weekday.
         """
         resp = self.client.get(
             '/api/v1/presence_start_end/10',
@@ -167,11 +167,40 @@ class PresenceAnalyzerViewsTestCase(unittest.TestCase):
         self.assertDictEqual(expected, result)
 
 
+class SimpleCacheDummy():
+    """
+    Dummy cache object it is created to help with testing cache method.
+    """
+    def __init__(self):
+        self._cache = {}
+        self.timeout = None
+
+    def set(self, key, value, timeout=None):
+        """
+        Sets key and value parameter, time out is here just to keep interface consistency.
+        :param mixed key:
+        :param mixed value:
+        :param integer timeout:
+        """
+        self._cache[key] = value
+        self.timeout = timeout
+
+    def get(self, key):
+        """
+        Gets value for given key.
+        :param mixed key:
+        :return mixed :
+        """
+        try:
+            return self._cache[key]
+        except KeyError:
+            return None
+
+
 class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
     """
     Utility functions tests.
     """
-
     def setUp(self):
         """
         Before each test, set up a environment.
@@ -186,12 +215,12 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
 
     def test_jsonify(self):
         """
-        Test jsonify
+        Test jsonify.
         """
         @utils.jsonify
         def test():
             """
-            Test function
+            Test function.
             """
             return "test"
         result = test()
@@ -199,6 +228,50 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         self.assertIsInstance(result, Response)
         self.assertEqual(result.headers[0], ('Content-Type', u'application/json'))
         self.assertEqual(expected, result.response[0])
+
+    def test_get_data__should_set_value_in_cache__result_is_fresh_data_from_get_data(self):
+        """
+        Test get_data
+        """
+        cache_temp = utils.simple_cache
+        utils.simple_cache = SimpleCacheDummy()
+        expected = {1: 'user'}
+
+        @utils.cache(60)
+        def get_data():
+            """
+            Function which replace mock.
+            """
+            return expected
+
+        result = get_data()
+        self.assertEqual(expected, result)
+        self.assertEqual(expected, utils.simple_cache.get('user-data'))
+        # sets previous state to simple_cache global variable at utils package
+        utils.simple_cache = cache_temp
+
+    def test_get_data__should_not_set_value_in_cache__result_is_cached_data_from_get_data(self):
+        """
+        Test get data.
+        """
+        cache_temp = utils.simple_cache
+        utils.simple_cache = SimpleCacheDummy()
+        expected = {2: 'user 2'}
+        utils.simple_cache.set('user-data', expected, 15)
+        not_expected = {1: 'user'}
+
+        @utils.cache(60)
+        def get_data():
+            """
+            Function which replace mock.
+            """
+            return not_expected
+
+        result = get_data()
+        self.assertEqual(expected, result)
+        self.assertEqual(expected, utils.simple_cache.get('user-data'))
+        # sets previous state to simple_cache global variable at utils package
+        utils.simple_cache = cache_temp
 
     def test_get_data(self):
         """
@@ -217,7 +290,7 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
 
     def test_group_by_weekday__should_calculate_start_end_interval__result_is_list_of_intervals(self):
         """
-        Test group by weekday
+        Test group by weekday.
         """
         date1 = datetime.date(2000, 1, 1)
         start1 = datetime.time(0, 0, 10)
@@ -237,7 +310,7 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
 
     def test_group_by_weekday_start_end__should_group_by_weekday__result_dict_of_integers_per_weekday(self):
         """
-        Test group by weekday start end
+        Test group by weekday start end.
         """
         date1 = datetime.date(2000, 1, 1)
         start1 = datetime.time(0, 0, 10)
@@ -255,7 +328,7 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
 
     def test_avg_time_weekday__should_convert_list_of_datetime_to_weekday_avg__result_is_dict_of_avg_datetime(self):
         """
-        Test avg time weekday
+        Test avg time weekday.
         """
         dates = {1: {'weekday': 1, 'start': [10, 20], 'end': [30, 40]}}
         result = utils.avg_time_weekday(dates)
@@ -264,7 +337,7 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
 
     def test_seconds_since_midnight__should_transform_time_to_seconds__result_is_number_of_seconds(self):
         """
-        Test seconds since midnight
+        Test seconds since midnight.
         """
         time = datetime.time(0, 1, 10)
         result = utils.seconds_since_midnight(time)
@@ -273,10 +346,10 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
 
     def test_interval__should_subtract_two_dates__result_is_number_of_seconds(self):
         """
-        Test interval
+        Test interval.
         """
-        start = datetime.datetime(1999, 12, 01, 0, 0, 1)
-        end = datetime.datetime(1999, 12, 01, 0, 2, 1)
+        start = datetime.datetime(1999, 12, 1, 0, 0, 1)
+        end = datetime.datetime(1999, 12, 1, 0, 2, 1)
         result = utils.interval(start, end)
         expected = 120
         self.assertEqual(expected, result)

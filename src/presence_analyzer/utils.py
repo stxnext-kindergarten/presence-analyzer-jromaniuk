@@ -10,9 +10,44 @@ from flask import Response
 from functools import wraps
 from json import dumps
 from presence_analyzer.main import app
-
+from threading import Lock
+from werkzeug.contrib.cache import SimpleCache
 import logging
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+lock = Lock()
+simple_cache = SimpleCache()
+
+
+def cache(expires):
+    """
+    Cache user data.
+    :param integer expires:
+    :return function:
+    """
+    def decorator(function):
+        """
+        Decorator.
+        :param function function:
+        :return function:
+        """
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            """
+            Wrapper.
+            :param args:
+            :param kwargs:
+            :return list:
+            """
+            global lock
+
+            with lock:
+                data = simple_cache.get('user-data')
+                if data is None:
+                    data = function(*args, **kwargs)
+                    simple_cache.set('user-data', data, expires)
+                return data
+        return wrapper
+    return decorator
 
 
 def jsonify(function):
@@ -31,11 +66,10 @@ def jsonify(function):
     return inner
 
 
+@cache(15)
 def get_data():
     """
-    Extracts presence data from CSV file and groups it by user_id.
-
-    It creates structure like this:
+    Extracts presence data from CSV file and groups it by user_id. It creates structure like this.
     data = {
         'user_id': {
             datetime.date(2013, 10, 1): {
@@ -66,7 +100,6 @@ def get_data():
                 log.debug('Problem with line %d: ', i, exc_info=True)
 
             data.setdefault(user_id, {})[date] = {'start': start, 'end': end}
-
     return data
 
 
