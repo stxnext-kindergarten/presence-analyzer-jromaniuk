@@ -3,16 +3,60 @@
 Helper functions used in views.
 """
 import csv
+import logging
+import requests
+import os
 import time
 
 from datetime import datetime
 from flask import Response
-from functools import wraps
+from functools import wraps, partial
 from json import dumps
 from presence_analyzer.main import app
-
-import logging
+from xml.etree import ElementTree as etree
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
+
+def get_users_data():
+    """
+    Get User data from xml.
+    :return dict:
+    """
+    root = etree.parse('runtime/users.xml')
+    server = root.find('server')
+    port = server.find('port').text  # pylint: disable=no-member
+    protocol = server.find('protocol').text  # pylint: disable=no-member
+    host = server.find('host').text  # pylint: disable=no-member
+    users = {}
+    for user in root.iter('user'):
+        id = int(user.get('id'))
+        name = user.find('name').text.encode('utf-8')
+        url = user.find('avatar').text.encode('utf-8')
+        avatar = "{0}://{1}:{2}{3}".format(protocol, host, port, url)
+        users[id] = {
+            'name': name,
+            'avatar': avatar
+        }
+    return users
+
+
+def download_users_xml():
+    """
+    Download file.
+    """
+    etc = partial(os.path.join, 'parts', 'etc')
+    DEBUG_CFG = etc('debug.cfg')
+    _buildout_path = __file__
+    for i in range(2 + __name__.count('.')):
+        _buildout_path = os.path.dirname(_buildout_path)
+    abspath = partial(os.path.join, _buildout_path)
+    del _buildout_path
+    app.config.from_pyfile(abspath(DEBUG_CFG))
+
+    url = app.config['USERS_DATA_EXTERNAL']
+    r = requests.get(url)
+    with open(app.config['USERS_DATA'], 'w') as f:
+        f.write(r.text.encode('ISO-8859-1'))
 
 
 def jsonify(function):

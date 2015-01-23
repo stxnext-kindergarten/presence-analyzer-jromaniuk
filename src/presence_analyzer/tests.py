@@ -275,8 +275,8 @@ class PresenceAnalyzerUtilsTestCase(unittest.TestCase):
         """
         Test interval
         """
-        start = datetime.datetime(1999, 12, 01, 0, 0, 1)
-        end = datetime.datetime(1999, 12, 01, 0, 2, 1)
+        start = datetime.datetime(1999, 12, 1, 0, 0, 1)
+        end = datetime.datetime(1999, 12, 1, 0, 2, 1)
         result = utils.interval(start, end)
         expected = 120
         self.assertEqual(expected, result)
