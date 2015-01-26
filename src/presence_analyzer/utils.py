@@ -4,18 +4,53 @@ Helper functions used in views.
 """
 import csv
 import logging
-import pdb
-import requests
 import os
+import requests
 import time
 
 from datetime import datetime
 from flask import Response
-from functools import wraps, partial
+from functools import wraps
 from json import dumps
 from presence_analyzer.main import app
+from threading import Lock
+from werkzeug.contrib.cache import SimpleCache
 from xml.etree import ElementTree as etree
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
+lock = Lock()
+simple_cache = SimpleCache()
+
+
+def cache(expires):
+    """
+    Cache user data.
+    :param integer expires:
+    :return function:
+    """
+    def decorator(function):
+        """
+        Decorator.
+        :param function function:
+        :return function:
+        """
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            """
+            Wrapper.
+            :param args:
+            :param kwargs:
+            :return list:
+            """
+            global lock
+
+            with lock:
+                data = simple_cache.get('user-data')
+                if data is None:
+                    data = function(*args, **kwargs)
+                    simple_cache.set('user-data', data, expires)
+                return data
+        return wrapper
+    return decorator
 
 
 def get_users_data():
@@ -23,21 +58,24 @@ def get_users_data():
     Get User data from xml.
     :return dict:
     """
-    root = etree.parse(app.config['USERS_DATA'])
-    server = root.find('server')
-    port = server.find('port').text  # pylint: disable=no-member
-    protocol = server.find('protocol').text  # pylint: disable=no-member
-    host = server.find('host').text  # pylint: disable=no-member
     users = {}
-    for user in root.iter('user'):
-        id = int(user.get('id'))
-        name = user.find('name').text.encode('utf-8')
-        url = user.find('avatar').text.encode('utf-8')
-        avatar = "{0}://{1}:{2}{3}".format(protocol, host, port, url)
-        users[id] = {
-            'name': name,
-            'avatar': avatar
-        }
+    try:
+        root = etree.parse(app.config['USERS_DATA'])
+        server = root.find('server')
+        port = server.find('port').text  # pylint: disable=no-member
+        protocol = server.find('protocol').text  # pylint: disable=no-member
+        host = server.find('host').text  # pylint: disable=no-member
+        for user in root.iter('user'):
+            id = int(user.get('id'))
+            name = user.find('name').text.encode('utf-8')
+            url = user.find('avatar').text.encode('utf-8')
+            avatar = "{0}://{1}:{2}{3}".format(protocol, host, port, url)
+            users[id] = {
+                'name': name,
+                'avatar': avatar
+            }
+    except IOError, e:
+        log.debug('File users.xml does not exist, run download-users command')
     return users
 
 
@@ -70,11 +108,10 @@ def jsonify(function):
     return inner
 
 
+@cache(15)
 def get_data():
     """
-    Extracts presence data from CSV file and groups it by user_id.
-
-    It creates structure like this:
+    Extracts presence data from CSV file and groups it by user_id. It creates structure like this.
     data = {
         'user_id': {
             datetime.date(2013, 10, 1): {
@@ -105,7 +142,6 @@ def get_data():
                 log.debug('Problem with line %d: ', i, exc_info=True)
 
             data.setdefault(user_id, {})[date] = {'start': start, 'end': end}
-
     return data
 
 
