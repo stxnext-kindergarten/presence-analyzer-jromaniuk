@@ -1,7 +1,6 @@
 function chart(loading) {
     var selected_user = $("#user_id").val();
     var chart_div = $('#chart_div');
-
     if (selected_user) {
         loading.show();
         chart_div.hide();

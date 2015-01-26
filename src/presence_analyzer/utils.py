@@ -3,6 +3,9 @@
 Helper functions used in views.
 """
 import csv
+import logging
+import os
+import requests
 import time
 
 from datetime import datetime
@@ -12,7 +15,7 @@ from json import dumps
 from presence_analyzer.main import app
 from threading import Lock
 from werkzeug.contrib.cache import SimpleCache
-import logging
+from xml.etree import ElementTree as etree
 log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 lock = Lock()
 simple_cache = SimpleCache()
@@ -48,6 +51,45 @@ def cache(expires):
                 return data
         return wrapper
     return decorator
+
+
+def get_users_data():
+    """
+    Get User data from xml.
+    :return dict:
+    """
+    users = {}
+    try:
+        root = etree.parse(app.config['USERS_DATA'])
+        server = root.find('server')
+        port = server.find('port').text  # pylint: disable=no-member
+        protocol = server.find('protocol').text  # pylint: disable=no-member
+        host = server.find('host').text  # pylint: disable=no-member
+        for user in root.iter('user'):
+            id = int(user.get('id'))
+            name = user.find('name').text.encode('utf-8')
+            url = user.find('avatar').text.encode('utf-8')
+            avatar = "{0}://{1}:{2}{3}".format(protocol, host, port, url)
+            users[id] = {
+                'name': name,
+                'avatar': avatar
+            }
+    except IOError, e:
+        log.debug('File users.xml does not exist, run download-users command')
+    return users
+
+
+def download_users_xml():
+    """
+    Download file.
+    """
+    root_dir = os.path.dirname(os.path.realpath(__file__))
+    DEBUG_CFG = os.path.join('{0}/../../'.format(root_dir),'parts', 'etc', 'debug.cfg')
+    app.config.from_pyfile(DEBUG_CFG)
+    url = app.config['USERS_DATA_EXTERNAL']
+    r = requests.get(url)
+    with open(app.config['USERS_DATA'], 'w') as f:
+        f.write(r.text.encode('ISO-8859-1'))
 
 
 def jsonify(function):

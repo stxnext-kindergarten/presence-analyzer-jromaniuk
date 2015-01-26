@@ -4,12 +4,13 @@ Defines views.
 """
 import calendar
 import logging
+
 from flask import redirect, abort, request, render_template
 from presence_analyzer.main import app
 from presence_analyzer.utils import(
     avg_time_weekday,
     get_data,
-
+    get_users_data,
     group_by_weekday,
     group_by_weekday_start_end,
     jsonify,
@@ -36,6 +37,7 @@ def index(tab):
         'mean_time_weekday': 'Mean time weekday',
         'presence_start_end': 'Presence start-end',
     }
+
     if tab not in tabs:
         log.debug('Page %s not found!', tab)
         abort(404)
@@ -54,9 +56,10 @@ def users_view():
         abort(501)
 
     data = get_data()
+    user_data = get_users_data()
     return [
-        {'user_id': i, 'name': 'User {0}'.format(str(i))}
-        for i in data.keys()
+        {'user_id': i, 'name': user_data.get(i).get('name'), 'avatar': user_data.get(i).get('avatar')}
+        for i in data.keys() if user_data.get(i)
     ]
 
 
