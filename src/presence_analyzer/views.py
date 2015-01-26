@@ -58,7 +58,6 @@ def users_view():
 
     data = get_data()
     user_data = get_users_data()
-    # import pdb; pdb.set_trace()
     return [
         {'user_id': i, 'name': user_data.get(i).get('name'), 'avatar': user_data.get(i).get('avatar')}
         for i in data.keys() if user_data.get(i)

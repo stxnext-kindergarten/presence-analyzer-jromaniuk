@@ -4,6 +4,7 @@ Helper functions used in views.
 """
 import csv
 import logging
+import pdb
 import requests
 import os
 import time
@@ -22,7 +23,7 @@ def get_users_data():
     Get User data from xml.
     :return dict:
     """
-    root = etree.parse('runtime/users.xml')
+    root = etree.parse(app.config['USERS_DATA'])
     server = root.find('server')
     port = server.find('port').text  # pylint: disable=no-member
     protocol = server.find('protocol').text  # pylint: disable=no-member
@@ -44,15 +45,9 @@ def download_users_xml():
     """
     Download file.
     """
-    etc = partial(os.path.join, 'parts', 'etc')
-    DEBUG_CFG = etc('debug.cfg')
-    _buildout_path = __file__
-    for i in range(2 + __name__.count('.')):
-        _buildout_path = os.path.dirname(_buildout_path)
-    abspath = partial(os.path.join, _buildout_path)
-    del _buildout_path
-    app.config.from_pyfile(abspath(DEBUG_CFG))
-
+    root_dir = os.path.dirname(os.path.realpath(__file__))
+    DEBUG_CFG = os.path.join('{0}/../../'.format(root_dir),'parts', 'etc', 'debug.cfg')
+    app.config.from_pyfile(DEBUG_CFG)
     url = app.config['USERS_DATA_EXTERNAL']
     r = requests.get(url)
     with open(app.config['USERS_DATA'], 'w') as f:

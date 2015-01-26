@@ -5,7 +5,7 @@ function parseInterval(value) {
 }
 
 (function($) {
-    $(document).ready(function(){
+    $(document).ready(function() {
         var loading = $('#loading');
         var results = [];
         $.getJSON("/api/v1/users", function(result) {
@@ -18,14 +18,14 @@ function parseInterval(value) {
             dropdown.show();
             loading.hide();
         });
-        $('#user_id').change(function(){
+        $('#user_id').change(function() {
             var id = $(this).val();
             if(results[id]) {
                 $('#name').text(results[id]['name']);
                 $('#avatar').attr('src', results[id]['avatar']);
             } else {
                 $('#name').text('');
-                $('#avatar').attr('src', null);
+                $('#avatar').attr('src', '');
             }
 
             chart(loading);
